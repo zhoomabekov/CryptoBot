@@ -1,10 +1,10 @@
 import telebot
 from config import keys, TOKEN
-from utils import ConvertException, CryptoConverter
+from extensions import APIException, CryptoConverter
 
 bot = telebot.TeleBot(TOKEN)
 
-@bot.message_handler(commands=['start', 'help'])
+@bot.message_handler(commands=['start', 'help'])        # Стартовое сообщение и ответ при командах /start и /help
 def help(message: telebot.types.Message):
     text = '''
     Данный бот делает конвертацию из одной валюты в другую.
@@ -18,7 +18,7 @@ def help(message: telebot.types.Message):
     bot.reply_to(message, text)
 
 
-@bot.message_handler(commands=['values'])
+@bot.message_handler(commands=['values'])               # Вывод доступных валют
 def values(message: telebot.types.Message):
     text = 'Доступные валюты:'
     for key in keys.keys():
@@ -26,17 +26,17 @@ def values(message: telebot.types.Message):
     bot.reply_to(message, text)
 
 
-@bot.message_handler(content_types=['text'])
+@bot.message_handler(content_types=['text'])            # Основная обработка запросов
 def convert(message: telebot.types.Message):
     try:
         vals = message.text.split(' ')
 
         if len(vals) != 3:
-            raise ConvertException('Количество параметров должно быть три')
+            raise APIException('Количество параметров должно быть три')
 
         quote, base, amount = vals
-        total_base = CryptoConverter.convert(quote, base, amount)
-    except ConvertException as e:
+        total_base = CryptoConverter.get_price(quote, base, amount)
+    except APIException as e:
         bot.reply_to(message, f'Ошибка пользователя.\n{e}')
     except Exception as e:
         bot.reply_to(message, f'Не удалось обработать команду\n{e}')
@@ -48,4 +48,4 @@ def convert(message: telebot.types.Message):
 
 
 
-bot.polling()
+bot.polling()       # Запускаем бот

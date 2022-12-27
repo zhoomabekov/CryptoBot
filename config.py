@@ -1,4 +1,4 @@
-TOKEN = 'token_goes_here'
+TOKEN = '123'
 
 keys = {
     'биток' : 'BTC',

@@ -1,4 +1,4 @@
-# CryptoBot
+# CurrencyBot
  
 This is my first bot in Telegram.
 

@@ -1,18 +1,8 @@
 import telebot
-import requests
-import json
-
-TOKEN = '5950939460:AAHqveoXbNgQw0yccdKO8BwqhOuc3gOYo4s'
+from config import keys, TOKEN
+from utils import ConvertException, CryptoConverter
 
 bot = telebot.TeleBot(TOKEN)
-
-keys = {
-    'биток' : 'BTC',
-    'доллары': 'USD',
-    'эфир': 'ETH'
-
-}
-
 
 @bot.message_handler(commands=['start', 'help'])
 def help(message: telebot.types.Message):
@@ -38,12 +28,21 @@ def values(message: telebot.types.Message):
 
 @bot.message_handler(content_types=['text'])
 def convert(message: telebot.types.Message):
-    quote, base, amount = message.text. split(' ')
-    r = requests.get(f'https://min-api.cryptocompare.com/data/price?fsym={keys[quote.lower()]}&tsyms={keys[base.lower()]}')
+    try:
+        vals = message.text.split(' ')
 
-    total_base = json.loads(r.content)[keys[base]]
-    text = f'Цена {amount} {quote} в {base} - {total_base}'
-    bot.send_message(message.chat.id, text)
+        if len(vals) != 3:
+            raise ConvertException('Количество параметров должно быть три')
+
+        quote, base, amount = vals
+        total_base = CryptoConverter.convert(quote, base, amount)
+    except ConvertException as e:
+        bot.reply_to(message, f'Ошибка пользователя.\n{e}')
+    except Exception as e:
+        bot.reply_to(message, f'Не удалось обработать команду\n{e}')
+    else:
+        text = f'Цена {amount} {quote} в {base} - {total_base}'
+        bot.send_message(message.chat.id, text)
 
 
 

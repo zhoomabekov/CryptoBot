@@ -1,6 +1,6 @@
 import requests
 import json
-from config import keys
+from config import tickers, factors
 
 class APIException(Exception):
     pass
@@ -12,22 +12,16 @@ class CryptoConverter:      # обработка исключений и есл�
         if quote == base:
             raise APIException(f'Невозможно перевести одинаковые валюты "{base}"')
 
-        try:
-            quote_ticker = keys[quote.lower()]
-        except KeyError:
-            raise APIException(f'Не удалось обработать валюту "{quote}"')
+        if quote not in tickers:
+            raise APIException(f'Неизвестная валюта "{quote}"')
 
-        try:
-            base_ticker = keys[base.lower()]
-        except KeyError:
-            raise APIException(f'Не удалось обработать валюту "{base}"')
+        if base not in tickers:
+            raise APIException(f'Неизвестная валюта "{base}"')
 
         try:
             amount = float(amount)
         except ValueError:
             raise APIException(f'Не удалось обработать количество "{amount}"')
 
-        r = requests.get(f'https://min-api.cryptocompare.com/data/price?fsym={quote_ticker}&tsyms={base_ticker}')
-        total_base = json.loads(r.content)[keys[base]]
 
-        return total_base * amount
+        return amount * factors[f'{quote} / {base}']
